@@ -1,78 +1,138 @@
-# Free Deployment Guide (Render + Vercel + MongoDB Atlas + Upstash)
+# Deploy This Project for Free (Plain English)
 
-This project can be deployed with a **$0/month hobby stack**:
+If you follow these steps in order, it will work.
 
-- **Backend**: Render Free Web Service
-- **Frontend**: Vercel Hobby
-- **MongoDB**: Atlas M0 Free Cluster
-- **Redis**: Upstash Redis Free DB
+---
 
-> Note: Free tiers have limits and can sleep/spin down.
+## What you are deploying
 
-## 1) Create MongoDB Atlas (free)
+- **Backend API + websockets** → Render
+- **Frontend UI** → Vercel
+- **Database** → MongoDB Atlas (free)
+- **Redis cache** → Upstash (free)
 
-1. Create Atlas account.
-2. Create **M0 free cluster**.
-3. Add database user + password.
-4. Add IP access (for quick start you can allow `0.0.0.0/0`, then tighten later).
-5. Copy connection string as `MONGODB_URI`.
+You will end with:
+- a Render URL like `https://your-api.onrender.com`
+- a Vercel URL like `https://your-app.vercel.app`
 
-## 2) Create Upstash Redis (free)
+---
 
-1. Create Upstash Redis database.
-2. Copy the `REDIS_URL` connection string.
+## Step 0) Put code on GitHub
 
-## 3) Deploy backend to Render (free)
+1. Create a GitHub repo.
+2. Push this project to that repo.
 
-### Option A: Blueprint (recommended)
+You need this because Render and Vercel deploy directly from GitHub.
 
-1. Push repo to GitHub.
-2. In Render Dashboard, choose **New +** → **Blueprint**.
-3. Select this repo.
-4. Render will read `render.yaml`.
-5. Set required env vars in Render UI:
-   - `MONGODB_URI`
-   - `REDIS_URL`
-   - `NEWS_API_KEY` (optional)
-   - `OPENAI_API_KEY` (optional for real AI)
-6. Deploy.
+---
 
-### Option B: Manual service
+## Step 1) Create free MongoDB (Atlas)
 
-- Build command: `npm install`
-- Start command: `npm start`
-- Root directory: `backend`
+1. Go to MongoDB Atlas and create an account.
+2. Create a **free M0 cluster**.
+3. Create a database user (username/password).
+4. In Network Access, allow access from anywhere for now (`0.0.0.0/0`).
+5. Copy the connection string.
 
-## 4) Deploy frontend to Vercel (free)
+Save it as: `MONGODB_URI`
 
-1. Import GitHub repo to Vercel.
-2. Set **Root Directory** to `frontend`.
-3. Add env var:
-   - `VITE_BACKEND_URL=https://<your-render-service>.onrender.com`
-4. Deploy.
+---
 
-## 5) Wire CORS + socket origin
+## Step 2) Create free Redis (Upstash)
 
-After Vercel deploy gives you a domain, add this to Render backend env var:
+1. Go to Upstash and create a Redis database.
+2. Copy the Redis URL.
 
-- `FRONTEND_ORIGIN=https://<your-vercel-project>.vercel.app`
+Save it as: `REDIS_URL`
 
-For multiple origins, use comma-separated values, e.g.:
+---
+
+## Step 3) Deploy backend on Render
+
+### Simple way (Blueprint)
+
+1. Go to Render → **New +** → **Blueprint**.
+2. Connect your GitHub repo.
+3. Render will detect `render.yaml` automatically.
+4. Add these env vars in Render before deploy:
+
+Required:
+- `MONGODB_URI` = (from Atlas)
+- `REDIS_URL` = (from Upstash)
+
+Optional (but recommended):
+- `OPENAI_API_KEY` = your OpenAI key (if omitted, app uses mock AI)
+- `NEWS_API_KEY` = your NewsAPI key (if omitted, neutral fallback)
+
+5. Click deploy.
+6. Wait until service is live.
+
+Test it:
+- Open: `https://YOUR_RENDER_URL/health`
+- You should see: `{"ok":true}`
+
+---
+
+## Step 4) Deploy frontend on Vercel
+
+1. Go to Vercel → **Add New Project**.
+2. Import the same GitHub repo.
+3. Set **Root Directory** = `frontend`.
+4. Add env var:
+
+- `VITE_BACKEND_URL` = `https://YOUR_RENDER_URL`
+
+5. Click deploy.
+
+---
+
+## Step 5) Connect frontend domain to backend CORS
+
+After Vercel deploys, copy the Vercel URL and put it into Render env var:
+
+- `FRONTEND_ORIGIN=https://YOUR_PROJECT.vercel.app`
+
+If you also want localhost to keep working, use both:
 
 ```bash
-FRONTEND_ORIGIN=http://localhost:5173,https://my-bt.vercel.app
+FRONTEND_ORIGIN=http://localhost:5173,https://YOUR_PROJECT.vercel.app
 ```
 
-## 6) Verify
+Then click **Manual Deploy** on Render (or restart service).
 
-1. Backend health: `GET https://<render-url>/health`
-2. Snapshot endpoint: `GET https://<render-url>/api/market/snapshot`
-3. Open Vercel app and confirm watchlist/price updates.
-4. Confirm AI panel shows mock or real responses.
+---
 
-## 7) Keep it free-friendly
+## Step 6) Final check (important)
 
-- Keep poll interval at `5000ms` or slower.
-- Use only BTC/ETH initially.
-- Use mock AI mode if OpenAI spend is undesired.
-- Add usage alerts on Atlas/Upstash/Vercel/Render dashboards.
+1. Open your Vercel app URL.
+2. You should see BTC/ETH data updating every few seconds.
+3. AI panel should populate:
+   - real AI if `OPENAI_API_KEY` is set
+   - mock AI otherwise
+4. If chart stays empty, wait ~20 seconds and refresh once.
+
+---
+
+## If something does not work
+
+### Problem: Frontend loads but no live data
+- Check `VITE_BACKEND_URL` on Vercel is exactly your Render URL.
+- Check Render service is awake (free tier can sleep).
+- Check `/health` endpoint works in browser.
+
+### Problem: CORS/socket errors in browser console
+- Ensure `FRONTEND_ORIGIN` in Render exactly matches Vercel URL (including `https://`).
+- If using both local and hosted, use comma-separated origins.
+
+### Problem: AI panel empty
+- That is usually missing/invalid `OPENAI_API_KEY`.
+- Without a key, it should still show mock insights.
+
+---
+
+## Cheapest safe defaults
+
+- Keep only BTC/ETH.
+- Keep polling at 5 seconds.
+- Use mock AI first.
+- Add OpenAI key only after everything else works.
