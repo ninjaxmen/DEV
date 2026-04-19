@@ -69,6 +69,17 @@ npm run dev
 
 Open `http://localhost:5173`.
 
+
+## Free Deployment (Recommended)
+
+Use this stack for a no-cost hobby deployment:
+- Backend: Render Free Web Service
+- Frontend: Vercel Hobby
+- Database: MongoDB Atlas M0
+- Cache: Upstash Redis Free
+
+Detailed guide: [DEPLOY_FREE.md](./DEPLOY_FREE.md)
+
 ## API Endpoints
 - `GET /health`
 - `GET /api/market/price?symbol=BTCUSDT`

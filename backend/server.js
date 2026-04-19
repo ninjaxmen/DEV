@@ -47,12 +47,17 @@ if (redis) redis.connect().catch((error) => console.error('Redis connect failed:
 
 connectMongo(process.env.MONGODB_URI);
 
-app.use(cors({ origin: process.env.FRONTEND_ORIGIN || '*' }));
+const allowedOrigins = (process.env.FRONTEND_ORIGIN || '*')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+app.use(cors({ origin: allowedOrigins.includes('*') ? '*' : allowedOrigins }));
 app.use(express.json());
 app.use('/api/market', buildMarketRoutes(state));
 app.get('/health', (_req, res) => res.json({ ok: true }));
 
-const io = createSocketServer(server, process.env.FRONTEND_ORIGIN || '*');
+const io = createSocketServer(server, allowedOrigins.includes('*') ? '*' : allowedOrigins);
 
 async function cacheLatest(symbol, payload) {
   if (!redis) return;
