@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: personal-bt-backend
+    env: node
+    rootDir: backend
+    plan: free
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: PORT
+        value: 4000
+      - key: MARKET_POLL_INTERVAL_MS
+        value: 5000
+      - key: AI_INTERVAL_MS
+        value: 20000
+      - key: BINANCE_BASE_URL
+        value: https://api.binance.com
+      - key: COINGECKO_BASE_URL
+        value: https://api.coingecko.com/api/v3
+      - key: NEWS_API_URL
+        value: https://newsapi.org/v2/everything
+      - key: FRONTEND_ORIGIN
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: NEWS_API_KEY
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini
